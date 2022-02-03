@@ -6,8 +6,6 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 
 contract Elems is ERC721URIStorage, AccessControl {
 
-    using Strings for uint256;
-
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
@@ -18,6 +16,7 @@ contract Elems is ERC721URIStorage, AccessControl {
     constructor() ERC721("Elems", "ELEM") {
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(ADMIN_ROLE, msg.sender);
         _grantRole(MINTER_ROLE, msg.sender);
         _grantRole(BURNER_ROLE, msg.sender);
 
@@ -32,10 +31,9 @@ contract Elems is ERC721URIStorage, AccessControl {
     }
 
 
-    function mintNFT(address recipient, string memory tokenURI)
-        public
-        returns (uint256)
-    {
+    function mintNFT(address recipient, string memory tokenURI) public returns (uint256) {
+        require(hasRole(MINTER_ROLE, msg.sender), "Caller is not a minter");
+
         _tokenIds.increment();
 
         uint256 newItemId = _tokenIds.current();
@@ -43,6 +41,14 @@ contract Elems is ERC721URIStorage, AccessControl {
         _setTokenURI(newItemId, tokenURI);
 
         return newItemId;
+    }
+
+    function burnNFT(address owner, uint256 tokenId) public {
+        require(hasRole(BURNER_ROLE, msg.sender), "Caller is not a burner");
+        require((ownerOf(tokenId) == owner || hasRole(ADMIN_ROLE, msg.sender)), "You not a owner");
+
+        _burn(tokenId);
+
     }
 
 }
