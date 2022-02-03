@@ -7,3 +7,4 @@ typechain
 cache
 artifacts
 coverage
+package-lock.json
