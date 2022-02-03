@@ -2,9 +2,8 @@ node_modules
 .env
 ipfs
 typechain
-
+package-lock.json
 #Hardhat files
 cache
 artifacts
 coverage
-package-lock.json
