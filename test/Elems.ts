@@ -14,7 +14,7 @@ describe('Farm contract', () => {
 
     });
 
-    describe("Tests", function () {
+    describe("Mint", function () {
 
         it("Should mint", async function () {
             await elems.mintNFT(owner.address, "link");
@@ -48,6 +48,48 @@ describe('Farm contract', () => {
             
             expect(await elems.tokenURI(1)).to.equal("link");
         });
+
+        it("Should check tokenURI if dont have token", async function () {
+            await elems.mintNFT(owner.address, "link");
+            
+            await expect(elems.tokenURI(2)).to.be.revertedWith('ERC721URIStorage: URI query for nonexistent token');
+        });
+
+    });
+
+    describe("SafeTransferFrom", function () {
+
+        it("Should transfer with approval", async function () {
+            await elems.mintNFT(owner.address, "link");
+            await elems.approve(addr1.address, 1);
+            await elems['safeTransferFrom(address,address,uint256)'](owner.address, addr1.address, 1);
+            
+            expect(await elems.balanceOf(addr1.address)).to.equal("1");
+        });
+
+        it("Should transfer withot approval", async function () {
+            await elems.mintNFT(owner.address, "link");
+            
+            await expect(elems.connect(addr1)['safeTransferFrom(address,address,uint256)'](owner.address, addr1.address, 1)).to.be.revertedWith('ERC721: transfer caller is not owner nor approved');
+        });
+
+        it("Should approval owner to owner", async function () {
+            await elems.mintNFT(owner.address, "link");
+            await expect(elems.approve(owner.address, 1)).to.be.revertedWith('ERC721: approval to current owner');
+        });
+
+        it("Should approval foreign tokens", async function () {
+            await elems.mintNFT(owner.address, "link");
+            await expect(elems.connect(addr1).approve(addr1.address, 1)).to.be.revertedWith('ERC721: approve caller is not owner nor approved for all');
+        });
+
+        it("Should approval if dont have token", async function () {
+            await expect(elems.approve(addr1.address, 1)).to.be.revertedWith('ERC721: owner query for nonexistent token');
+        });
+
+    });
+
+    describe("Burn", function () {
 
         it("Should burn", async function () {
             await elems.mintNFT(owner.address, "link");
